@@ -1115,6 +1115,7 @@ contract PennyWhale is ERC20, Ownable {
         _mint(_initialOwner, 500000000 * 10 ** decimals());
         pancakeRouter = IPancakeRouter02(_pancakeRouter);
         wbnb = IWETH(_wbnb);
+        require(_usdtAddress != address(0), "Invalid USDT address");
         usdtAddress = _usdtAddress;
         feeWallet1p = _initialOwner;
         feeWallet2p = _initialOwner;
@@ -1266,6 +1267,7 @@ contract PennyWhale is ERC20, Ownable {
 
     // Set Manager Address
     function setManagerAddress(address _managerAddress) external onlyOwner {
+        require(_managerAddress != address(0), "Invalid manager address");
         managerAddress = _managerAddress;
     }
 
