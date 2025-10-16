@@ -1290,4 +1290,16 @@ contract PennyWhale is ERC20, Ownable {
             IPancakePair(bnbPairAddress).sync();
         }
     }
+
+    // Maintain nonTaxableAddress on ownership changes
+    function _transferOwnership(address newOwner) internal override {
+        address previousOwner = owner();
+        if (previousOwner != address(0)) {
+            nonTaxableAddress[previousOwner] = false;
+        }
+        super._transferOwnership(newOwner);
+        if (newOwner != address(0)) {
+            nonTaxableAddress[newOwner] = true;
+        }
+    }
 }
