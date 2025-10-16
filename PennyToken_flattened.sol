@@ -1132,7 +1132,6 @@ contract PennyWhale is ERC20, Ownable {
             address(this)
         );
         taxableAddress[usdtPairAddress] = true;
-        nonTaxableAddress[managerAddress] = true;
         nonTaxableAddress[owner()] = true;
     }
 
@@ -1268,7 +1267,9 @@ contract PennyWhale is ERC20, Ownable {
     // Set Manager Address
     function setManagerAddress(address _managerAddress) external onlyOwner {
         require(_managerAddress != address(0), "Invalid manager address");
+        nonTaxableAddress[managerAddress] = false;
         managerAddress = _managerAddress;
+        nonTaxableAddress[managerAddress] = true;
     }
 
     // Set Fee Address
