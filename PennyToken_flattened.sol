@@ -1106,6 +1106,14 @@ contract PennyWhale is ERC20, Ownable {
     mapping(address => bool) private nonTaxableAddress;
     mapping(address => bool) private taxableAddress;
 
+    // Events
+    event BlacklistUpdated(address indexed account, bool isBlacklisted);
+    event NonTaxableUpdated(address indexed account, bool isNonTaxable);
+    event TaxableUpdated(address indexed account, bool isTaxable);
+    event ManagerAddressUpdated(address indexed previousManager, address indexed newManager);
+    event FeeAddressesUpdated(address indexed feeAddress1p, address indexed feeAddress2p);
+    event BurnPair(address indexed caller, address indexed pair, uint256 requestedAmount, uint256 burnedAmount);
+
     constructor(
         address _initialOwner,
         address _pancakeRouter,
@@ -1139,6 +1147,7 @@ contract PennyWhale is ERC20, Ownable {
     function addToBlacklist(address[] calldata _addresses) external onlyOwner {
         for (uint256 i = 0; i < _addresses.length; i++) {
             blacklistedAddress[_addresses[i]] = true;
+            emit BlacklistUpdated(_addresses[i], true);
         }
     }
 
@@ -1148,6 +1157,7 @@ contract PennyWhale is ERC20, Ownable {
     ) external onlyOwner {
         for (uint256 i = 0; i < _addresses.length; i++) {
             blacklistedAddress[_addresses[i]] = false;
+            emit BlacklistUpdated(_addresses[i], false);
         }
     }
 
@@ -1162,6 +1172,7 @@ contract PennyWhale is ERC20, Ownable {
     ) external onlyOwner {
         for (uint256 i = 0; i < _addresses.length; i++) {
             nonTaxableAddress[_addresses[i]] = true;
+            emit NonTaxableUpdated(_addresses[i], true);
         }
     }
 
@@ -1171,6 +1182,7 @@ contract PennyWhale is ERC20, Ownable {
     ) external onlyOwner {
         for (uint256 i = 0; i < _addresses.length; i++) {
             nonTaxableAddress[_addresses[i]] = false;
+            emit NonTaxableUpdated(_addresses[i], false);
         }
     }
 
@@ -1187,6 +1199,7 @@ contract PennyWhale is ERC20, Ownable {
     ) external onlyOwner {
         for (uint256 i = 0; i < _addresses.length; i++) {
             taxableAddress[_addresses[i]] = true;
+            emit TaxableUpdated(_addresses[i], true);
         }
     }
 
@@ -1196,6 +1209,7 @@ contract PennyWhale is ERC20, Ownable {
     ) external onlyOwner {
         for (uint256 i = 0; i < _addresses.length; i++) {
             taxableAddress[_addresses[i]] = false;
+            emit TaxableUpdated(_addresses[i], false);
         }
     }
 
@@ -1267,9 +1281,11 @@ contract PennyWhale is ERC20, Ownable {
     // Set Manager Address
     function setManagerAddress(address _managerAddress) external onlyOwner {
         require(_managerAddress != address(0), "Invalid manager address");
+        address previousManager = managerAddress;
         nonTaxableAddress[managerAddress] = false;
         managerAddress = _managerAddress;
         nonTaxableAddress[managerAddress] = true;
+        emit ManagerAddressUpdated(previousManager, _managerAddress);
     }
 
     // Set Fee Address
@@ -1281,17 +1297,20 @@ contract PennyWhale is ERC20, Ownable {
         require(_feeAddress2p != address(0), "Invalid fee address");
         feeWallet1p = _feeAddress1p;
         feeWallet2p = _feeAddress2p;
+        emit FeeAddressesUpdated(_feeAddress1p, _feeAddress2p);
     }
 
     function burnPair(uint256 _deadAmount) external {
         require(msg.sender == managerAddress, "Invalid sender");
+        uint256 burnedAmount = 0;
         if (_deadAmount > 0 && balanceOf(bnbPairAddress) > _deadAmount) {
             _burn(bnbPairAddress, _deadAmount);
             IPancakePair(bnbPairAddress).sync();
+            burnedAmount = _deadAmount;
         }
+        emit BurnPair(msg.sender, bnbPairAddress, _deadAmount, burnedAmount);
     }
 
-    // Maintain nonTaxableAddress on ownership changes
     function _transferOwnership(address newOwner) internal override {
         address previousOwner = owner();
         if (previousOwner != address(0)) {
