@@ -1094,9 +1094,9 @@ pragma solidity ^0.8.22;
 contract PennyWhale is ERC20, Ownable {
     IPancakeRouter02 public pancakeRouter;
     IWETH public wbnb;
-    address public bnbPairAddress;
-    address public usdtPairAddress;
-    address public usdtAddress;
+    address public immutable bnbPairAddress;
+    address public immutable usdtPairAddress;
+    address public immutable usdtAddress;
     address public managerAddress;
 
     address public feeWallet1p;
